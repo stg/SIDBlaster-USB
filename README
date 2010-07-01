@@ -1,0 +1,3 @@
+pic16f886/       Source code (MPASM) and compiled HEX for PIC16F886
+win_hardsid_dll/ Source code (MinGW) and compiled windows hardsid driver (place in sidplay/goatracker folder)
+win_host/        Windows host application (must be running, hardsid driver uses this)
