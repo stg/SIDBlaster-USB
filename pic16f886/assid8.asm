@@ -1,10 +1,25 @@
 ; ASSID [acid] Asynchronous Serial SID Interface Device
-; - A serial interface for the MOS 6501 SID
+; - A 500kbps serial interface for the MOS 6501 SID
 ;   senseitg@hotmail.com
+
+; Designed for MPASM
+
+; To attain the highest possible speed, the SID is driven by a timer
+; set up to generate the 1MHz signal to the SID. Since the SID requires
+; that read/write operations are aligned to the clock, the code loop is
+; designed to always run an exact multiple of clock cycles thus keeping
+; the code synchronized to the timer output.
 
 	list			p=16f886
 	radix			dec
 	#include		p16f886.inc
+
+; Configuration bits
+;   INTOSCIO  - allows power up without 12MHz clock from FTDI
+;	WTD_OFF   - watchdog is not kicked by code
+;   MCLRE_OFF - else will require jumper on programming header
+;   LVP_OFF   - frees up RB3 which is very much required
+	__CONFIG _CONFIG1, _INTOSCIO & _WDT_OFF & _MCLRE_OFF & _LVP_OFF
 
 SID_CTL		EQU		PORTC			;SID bus control port
 SID_ADDR	EQU		PORTA			;SID bus address port
@@ -30,6 +45,9 @@ __ISR
 	RETFIE
 
 __INIT
+
+
+	BTFSC   INTCON,     GIE
 
 	;Disable analog	
 	BSF		STATUS,		RP0
@@ -63,10 +81,10 @@ __INIT
 	MOVWF	T2CON					;T2CON   <- 0b00000100:	T2 = sysclk
 	MOVLW	0x01
 	BSF		STATUS,		RP0
-	MOVWF	PR2						;PR2     <- 0b00000011: reload at 3 = 4 cycles
+	MOVWF	PR2						;PR2     <- 0b00000001: reload at 1 = 2 cycles
 	MOVLW	0x01
 	BCF		STATUS,		RP0
-	MOVWF	CCPR1L					;CCPR1L  <- 0b00000010:	pwm duty 50%
+	MOVWF	CCPR1L					;CCPR1L  <- 0b00000001:	pwm duty 50%
 	MOVLW	0x0F
 	MOVWF	CCP1CON					;CCP1CON <- 0b00001111: pwm enable @P1A/SID_CLK
 
@@ -85,14 +103,6 @@ __INIT
 	MOVLW	0x90
 	MOVWF	RCSTA					;RCSTA   <- 0b10010000: Enable receiver
 
-;__SENDTEST
-;	BSF		STATUS,		RP0
-;	BTFSS	TXSTA,		TRMT
-;	GOTO	__SENDTEST
-;	BCF		STATUS,		RP0
-;	MOVLW	0x55
-;	MOVWF	TXREG	
-;	GOTO	__SENDTEST
 	NOP
 
 __MAIN
