@@ -1,3 +1,5 @@
+GNU GENERAL PUBLIC LICENSE
+
 ftdi_template/   Template for FT_PROG, used to program USB-chip
 pcb/             PCB design files
 pic16f886/       Source code (MPASM) and compiled HEX for PIC16F886
